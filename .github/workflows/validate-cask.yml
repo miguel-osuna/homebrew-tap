@@ -1,0 +1,78 @@
+name: Validate Sweepdeck cask
+on:
+  pull_request:
+    paths:
+      - "Casks/**"
+  push:
+    branches: [master]
+    paths:
+      - "Casks/**"
+permissions:
+  contents: read
+jobs:
+  macos:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Require a disposable Apple Silicon runner
+        run: test "$(uname -m)" = arm64
+      - name: Update Homebrew on the disposable runner
+        run: |
+          brew update
+          echo 'HOMEBREW_NO_AUTO_UPDATE=1' >> "$GITHUB_ENV"
+      - name: Create a local tap from the reviewed cask
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          local_tap="$RUNNER_TEMP/homebrew-tap"
+          mkdir -p "$local_tap"
+          cp -R Casks "$local_tap/Casks"
+          git -C "$local_tap" init --quiet --initial-branch=main
+          git -C "$local_tap" config user.name "Homebrew cask validation"
+          git -C "$local_tap" config user.email "homebrew-cask-validation@users.noreply.github.com"
+          git -C "$local_tap" add Casks
+          git -C "$local_tap" commit --quiet -m "Validate reviewed cask"
+          brew tap miguel-osuna/tap "$local_tap"
+      - name: Audit cask metadata
+        run: brew audit --cask --strict miguel-osuna/tap/sweepdeck
+      - name: Check cask style
+        run: brew style --cask miguel-osuna/tap/sweepdeck
+      - name: Install the published cask
+        run: brew install --cask miguel-osuna/tap/sweepdeck
+      - name: Inspect installed app and first launch
+        env:
+          RUNNER_TEMP: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          app="/Applications/Sweepdeck.app"
+          state="$RUNNER_TEMP/SweepdeckState"
+          mkdir -p "$state"
+          test -d "$app/Contents/MacOS"
+          test -f "$app/Contents/Info.plist"
+          brew info --cask miguel-osuna/tap/sweepdeck
+          brew list --cask --versions miguel-osuna/tap/sweepdeck
+          /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist"
+          file "$app/Contents/MacOS/Sweepdeck"
+          find "$app" -maxdepth 4 -print
+          printf 'Homebrew quarantine: '
+          xattr -p com.apple.quarantine "$app"
+          launchctl setenv SWEEPDECK_STATE_DIR "$state"
+          spctl --assess --type execute --verbose=4 "$app"
+          open -a "$app"
+          sleep 5
+          pgrep -x Sweepdeck
+          osascript -e 'tell application "Sweepdeck" to quit'
+      - name: Uninstall the app
+        if: always()
+        run: |
+          set -euo pipefail
+          osascript -e 'tell application "Sweepdeck" to quit' >/dev/null 2>&1 || true
+          launchctl unsetenv SWEEPDECK_STATE_DIR >/dev/null 2>&1 || true
+          if brew list --cask --full-name 2>/dev/null | grep -Fxq "miguel-osuna/tap/sweepdeck"; then
+            brew uninstall --cask miguel-osuna/tap/sweepdeck
+          fi
+          test ! -e /Applications/Sweepdeck.app
