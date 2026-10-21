@@ -1,7 +1,11 @@
 # Sweepdeck Homebrew tap
 
-Owner-managed tap for Sweepdeck. The initial cask is pending the first reviewed,
-versioned GitHub Release and Gatekeeper validation.
+Owner-managed tap for Sweepdeck. The initial cask is not published yet. The
+release-shaped 0.1.0 candidate passed Homebrew audit/style/install/uninstall on a
+disposable Apple Silicon runner, but Gatekeeper rejected its quarantined app
+(`spctl` exit status 3) and first launch did not start. Publication is blocked pending
+a Developer ID signing and notarization decision, followed by a successful candidate
+retest.
 
 When the cask is published, the fully qualified install command will be:
 
