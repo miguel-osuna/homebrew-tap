@@ -54,7 +54,7 @@ jobs:
           test -d "$app/Contents/MacOS"
           test -f "$app/Contents/Info.plist"
           brew info --cask miguel-osuna/tap/sweepdeck
-          brew list --cask --versions miguel-osuna/tap/sweepdeck
+          brew list --cask --full-name | grep -Fx miguel-osuna/tap/sweepdeck
           /usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist"
           file "$app/Contents/MacOS/Sweepdeck"
           find "$app" -maxdepth 4 -print
