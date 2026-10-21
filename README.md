@@ -1,19 +1,22 @@
 # Miguel Osuna's Homebrew tap
 
 Homebrew formulae and casks maintained by Miguel Osuna. The initial Sweepdeck cask
-and app release are not published yet. Candidate checks passed Homebrew audit, style,
-install, bundle inspection, and uninstall on a disposable Apple Silicon runner, while
-Gatekeeper rejected the quarantined ad-hoc-signed app (`spctl` exit status 3). The
-latest completed result is [candidate run 39633942051](https://github.com/miguel-osuna/Sweepdeck/actions/runs/39633942051):
-Launch Services timed out after 15 seconds, but a Sweepdeck process was observed. The
-runner did not capture a warning dialog or inspect visible app UI, so the result does
-not prove what a user sees or verify an interactive launch.
+and app release are not published yet. The latest candidate check,
+[run 39640681352](https://github.com/miguel-osuna/Sweepdeck/actions/runs/39640681352),
+passed Homebrew audit, style, install, bundle inspection, and uninstall on a disposable
+Apple Silicon runner. Gatekeeper rejected the quarantined ad-hoc-signed app (`spctl`
+exit status 3). Its first-launch screen said **“Sweepdeck” Not Opened** because Apple
+could not verify it was free of malware. Launch Services timed out after 15 seconds,
+but a Sweepdeck process was observed. The runner did not approve the app or verify a
+successful post-approval launch.
 
 The maintainer chose a no-cost, warning-forward path rather than Developer ID signing
-and notarization. macOS may warn or require an explicit user approval on first launch.
-If you choose to proceed after a warning, try opening the app, then check **System
-Settings > Privacy & Security > Open Anyway** and confirm. The tap will leave
-quarantine in place and will not automate that choice. This is an owner-managed tap;
+and notarization. macOS blocks first launch until the user makes an explicit choice.
+If you choose to proceed, click **Done** on the warning, then check **System Settings >
+Privacy & Security > Open Anyway** and confirm. Apple says that option is available for
+about an hour after trying to open the app. Review Apple's [security
+guidance](https://support.apple.com/en-au/102445) before making that choice. The tap will
+leave quarantine in place and will not automate it. This is an owner-managed tap;
 the app does not meet the official Homebrew cask Gatekeeper requirement, and no
 official-cask submission is planned.
 
