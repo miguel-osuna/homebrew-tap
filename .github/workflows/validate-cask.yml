@@ -64,7 +64,6 @@ jobs:
           signature_info="$(codesign -dv --verbose=4 "$app" 2>&1 || true)"
           printf '%s\n' "$signature_info"
           grep -Fq 'Signature=adhoc' <<<"$signature_info"
-          launchctl setenv SWEEPDECK_STATE_DIR "$state"
           set +e
           spctl --assess --type execute --verbose=4 "$app"
           gatekeeper_status=$?
@@ -75,7 +74,7 @@ jobs:
           fi
           rm -f "$RUNNER_TEMP/Sweepdeck-first-launch.png"
           set +e
-          open -a "$app" >"$RUNNER_TEMP/Sweepdeck-first-launch.txt" 2>&1 &
+          open -a "$app" --args --sweepdeck-state-directory "$state" >"$RUNNER_TEMP/Sweepdeck-first-launch.txt" 2>&1 &
           open_pid=$!
           launch_started="$SECONDS"
           open_status=0
@@ -102,7 +101,18 @@ jobs:
           fi
           set -e
           sleep 5
-          if pgrep -x Sweepdeck >/dev/null 2>&1; then launch_status=0; else launch_status=1; fi
+          if pgrep -x Sweepdeck >/dev/null 2>&1; then
+            launch_status=0
+            process_id="$(pgrep -x Sweepdeck | head -n 1)"
+            process_command="$(ps -p "$process_id" -o command=)"
+            printf 'Sweepdeck process: %s\n' "$process_command"
+            [[ "$process_command" == *"--sweepdeck-state-directory"* && "$process_command" == *"$state"* ]] || {
+              echo "Sweepdeck did not receive the temporary state directory argument." >&2
+              exit 1
+            }
+          else
+            launch_status=1
+          fi
           cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
           printf 'Gatekeeper status: %s; Launch Services status: %s; app process: %s\n' \
             "$gatekeeper_status" "$open_status" "$launch_status"
@@ -136,7 +146,6 @@ jobs:
         run: |
           set -euo pipefail
           pkill -TERM -x Sweepdeck >/dev/null 2>&1 || true
-          launchctl unsetenv SWEEPDECK_STATE_DIR >/dev/null 2>&1 || true
           if brew list --cask --full-name 2>/dev/null | grep -Fxq "miguel-osuna/tap/sweepdeck"; then
             brew uninstall --cask miguel-osuna/tap/sweepdeck
           fi
