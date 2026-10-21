@@ -65,12 +65,17 @@ jobs:
           open -a "$app"
           sleep 5
           pgrep -x Sweepdeck
-          osascript -e 'tell application "Sweepdeck" to quit'
+          pkill -TERM -x Sweepdeck
+          for _ in {1..10}; do
+            pgrep -x Sweepdeck >/dev/null 2>&1 || break
+            sleep 1
+          done
+          ! pgrep -x Sweepdeck >/dev/null 2>&1
       - name: Uninstall the app
         if: always()
         run: |
           set -euo pipefail
-          osascript -e 'tell application "Sweepdeck" to quit' >/dev/null 2>&1 || true
+          pkill -TERM -x Sweepdeck >/dev/null 2>&1 || true
           launchctl unsetenv SWEEPDECK_STATE_DIR >/dev/null 2>&1 || true
           if brew list --cask --full-name 2>/dev/null | grep -Fxq "miguel-osuna/tap/sweepdeck"; then
             brew uninstall --cask miguel-osuna/tap/sweepdeck
