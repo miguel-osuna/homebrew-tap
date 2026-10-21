@@ -34,11 +34,20 @@ scripts.
 
 This no-cost build is ad-hoc signed and has no Apple-issued Developer ID signature
 or notarization ticket. macOS may block the first launch because Apple cannot
-verify the app is free of malware. If you choose to continue, select **Done** on
-the warning, then review **System Settings > Privacy & Security > Open Anyway**.
-Read Apple's [security guidance](https://support.apple.com/en-au/102445) first.
-Homebrew preserves quarantine; this tap does not disable Gatekeeper or automate
-the approval.
+verify the app is free of malware. If you downloaded it from the official release
+or installed it from this tap and trust that source, macOS provides a one-time,
+per-app approval:
+
+1. Click **Done** in the warning. **Move to Trash** removes the app.
+2. Open **System Settings > Privacy & Security**, scroll to **Security**, and click
+   **Open Anyway** for Sweepdeck.
+3. When the warning appears again, click **Open** if you still want to run it.
+
+macOS saves this exception for Sweepdeck, so future launches work normally. Read
+Apple's [security guidance](https://support.apple.com/en-au/102445) before
+proceeding. Homebrew preserves quarantine; this tap does not disable Gatekeeper or
+automate the approval. A DMG would provide a drag-to-Applications install experience,
+but would not change this Gatekeeper check.
 
 ## Cask maintenance
 
