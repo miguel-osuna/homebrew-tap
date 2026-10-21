@@ -1,6 +1,6 @@
-# Sweepdeck Homebrew tap
+# Miguel Osuna's Homebrew tap
 
-Owner-managed tap for Sweepdeck. The initial cask is not published yet. The
+Homebrew formulae and casks maintained by Miguel Osuna. The initial cask is not published yet. The
 release-shaped 0.1.0 candidate passed Homebrew audit/style/install/uninstall on a
 disposable Apple Silicon runner, but Gatekeeper rejected its quarantined app
 (`spctl` exit status 3) and first launch did not start. Publication is blocked pending
