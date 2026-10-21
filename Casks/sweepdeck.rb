@@ -1,6 +1,6 @@
 cask "sweepdeck" do
-  version "0.2.0"
-  sha256 "e31d64f80948461fe0f92d5c482c8f11c8f364ca81f8c326a40f8db8d2dbd760"
+  version "0.3.0"
+  sha256 "ba4c944c4a128a508465b0c7659c60359220c1585da7f6c0f89c4072141ccf6e"
 
   url "https://github.com/miguel-osuna/Sweepdeck/releases/download/v#{version}/Sweepdeck-#{version}-macOS.zip"
   name "Sweepdeck"
