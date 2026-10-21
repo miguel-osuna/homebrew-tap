@@ -43,7 +43,7 @@ jobs:
         run: brew style --cask miguel-osuna/tap/sweepdeck
       - name: Install the published cask
         run: brew install --cask miguel-osuna/tap/sweepdeck
-      - name: Inspect installed app and first launch
+      - name: Inspect installed app and report first-launch approval behavior
         env:
           RUNNER_TEMP: ${{ runner.temp }}
         run: |
@@ -60,39 +60,77 @@ jobs:
           find "$app" -maxdepth 4 -print
           printf 'Homebrew quarantine: '
           xattr -p com.apple.quarantine "$app"
+          codesign --verify --strict "$app"
+          signature_info="$(codesign -dv --verbose=4 "$app" 2>&1 || true)"
+          printf '%s\n' "$signature_info"
+          grep -Fq 'Signature=adhoc' <<<"$signature_info"
           launchctl setenv SWEEPDECK_STATE_DIR "$state"
+          set +e
           spctl --assess --type execute --verbose=4 "$app"
+          gatekeeper_status=$?
+          set -e
+          if [[ "$gatekeeper_status" -ne 0 && "$gatekeeper_status" -ne 3 ]]; then
+            echo "Unexpected Gatekeeper assessment status: $gatekeeper_status" >&2
+            exit 1
+          fi
+          rm -f "$RUNNER_TEMP/Sweepdeck-first-launch.png"
+          set +e
           open -a "$app" >"$RUNNER_TEMP/Sweepdeck-first-launch.txt" 2>&1 &
           open_pid=$!
-          open_complete=0
+          launch_started="$SECONDS"
           open_status=0
           for _ in {1..15}; do
+            if [[ ! -e "$RUNNER_TEMP/Sweepdeck-first-launch.png" && "$((SECONDS - launch_started))" -ge 3 ]]; then
+              if screencapture -x "$RUNNER_TEMP/Sweepdeck-first-launch.png" >/dev/null 2>&1; then
+                echo "Captured first-launch screen for review."
+              else
+                rm -f "$RUNNER_TEMP/Sweepdeck-first-launch.png"
+                echo "The disposable runner did not provide a capturable user session."
+              fi
+            fi
             if ! kill -0 "$open_pid" >/dev/null 2>&1; then
               if wait "$open_pid"; then open_status=0; else open_status=$?; fi
-              open_complete=1
               break
             fi
             sleep 1
           done
-          if [[ "$open_complete" -eq 0 ]]; then
-            echo "Launch Services did not return within 15 seconds."
+          if kill -0 "$open_pid" >/dev/null 2>&1; then
+            echo "Launch Services did not return within 15 seconds." >>"$RUNNER_TEMP/Sweepdeck-first-launch.txt"
             kill -TERM "$open_pid" >/dev/null 2>&1 || true
             wait "$open_pid" >/dev/null 2>&1 || true
-            cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
-            exit 124
+            open_status=124
           fi
-          if [[ "$open_status" -ne 0 ]]; then
-            cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
-            exit "$open_status"
-          fi
+          set -e
           sleep 5
-          pgrep -x Sweepdeck
-          pkill -TERM -x Sweepdeck
-          for _ in {1..10}; do
-            pgrep -x Sweepdeck >/dev/null 2>&1 || break
-            sleep 1
-          done
-          ! pgrep -x Sweepdeck >/dev/null 2>&1
+          if pgrep -x Sweepdeck >/dev/null 2>&1; then launch_status=0; else launch_status=1; fi
+          cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
+          printf 'Gatekeeper status: %s; Launch Services status: %s; app process: %s\n' \
+            "$gatekeeper_status" "$open_status" "$launch_status"
+          if [[ "$gatekeeper_status" -eq 0 && "$launch_status" -ne 0 ]]; then
+            echo "Gatekeeper accepted the app, but the process did not start." >&2
+            exit 1
+          fi
+          if [[ "$gatekeeper_status" -eq 3 ]]; then
+            echo "Gatekeeper rejected the ad-hoc signed app for unattended launch."
+            echo "The user may need to approve it in System Settings > Privacy & Security."
+            echo "The test did not simulate that approval or remove quarantine."
+          fi
+          if [[ "$launch_status" -eq 0 ]]; then
+            pkill -TERM -x Sweepdeck
+            for _ in {1..10}; do
+              pgrep -x Sweepdeck >/dev/null 2>&1 || break
+              sleep 1
+            done
+            ! pgrep -x Sweepdeck >/dev/null 2>&1
+          fi
+      - name: Preserve disposable first-launch screen for review
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: Sweepdeck-first-launch-screen-${{ github.run_id }}
+          path: ${{ runner.temp }}/Sweepdeck-first-launch.png
+          if-no-files-found: ignore
+          retention-days: 1
       - name: Uninstall the app
         if: always()
         run: |
