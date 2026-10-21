@@ -25,7 +25,7 @@ The short command does not work from a fresh Homebrew setup without those setup
 steps or inclusion in an official Homebrew tap.
 
 The cask downloads the versioned app archive from Sweepdeck's
-[GitHub Release](https://github.com/miguel-osuna/Sweepdeck/releases/tag/v0.2.0)
+[GitHub Release](https://github.com/miguel-osuna/Sweepdeck/releases/tag/v0.3.0)
 and verifies its SHA-256. It installs only `Sweepdeck.app`. Uninstall leaves
 Sweepdeck preferences and history intact; the cask has no `zap` stanza or cleanup
 scripts.
@@ -46,8 +46,10 @@ per-app approval:
 macOS saves this exception for Sweepdeck, so future launches work normally. Read
 Apple's [security guidance](https://support.apple.com/en-au/102445) before
 proceeding. Homebrew preserves quarantine; this tap does not disable Gatekeeper or
-automate the approval. A DMG would provide a drag-to-Applications install experience,
-but would not change this Gatekeeper check.
+automate the approval. For a manual install, the 0.3.0 release also provides a
+[drag-to-Applications DMG](https://github.com/miguel-osuna/Sweepdeck/releases/download/v0.3.0/Sweepdeck-0.3.0-macOS.dmg) with an Applications shortcut and
+`INSTALL.txt`. It contains the same app, so it requires the same first-launch
+approval; Homebrew continues to use the ZIP.
 
 ## Cask maintenance
 
