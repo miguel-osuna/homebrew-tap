@@ -62,7 +62,29 @@ jobs:
           xattr -p com.apple.quarantine "$app"
           launchctl setenv SWEEPDECK_STATE_DIR "$state"
           spctl --assess --type execute --verbose=4 "$app"
-          open -a "$app"
+          open -a "$app" >"$RUNNER_TEMP/Sweepdeck-first-launch.txt" 2>&1 &
+          open_pid=$!
+          open_complete=0
+          open_status=0
+          for _ in {1..15}; do
+            if ! kill -0 "$open_pid" >/dev/null 2>&1; then
+              if wait "$open_pid"; then open_status=0; else open_status=$?; fi
+              open_complete=1
+              break
+            fi
+            sleep 1
+          done
+          if [[ "$open_complete" -eq 0 ]]; then
+            echo "Launch Services did not return within 15 seconds."
+            kill -TERM "$open_pid" >/dev/null 2>&1 || true
+            wait "$open_pid" >/dev/null 2>&1 || true
+            cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
+            exit 124
+          fi
+          if [[ "$open_status" -ne 0 ]]; then
+            cat "$RUNNER_TEMP/Sweepdeck-first-launch.txt"
+            exit "$open_status"
+          fi
           sleep 5
           pgrep -x Sweepdeck
           pkill -TERM -x Sweepdeck
