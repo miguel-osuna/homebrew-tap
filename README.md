@@ -2,7 +2,7 @@
 
 Homebrew formulae and casks maintained by Miguel Osuna. The initial Sweepdeck cask
 and app release are not published yet. The 0.1.0 candidate check,
-[run 39642233429](https://github.com/miguel-osuna/Sweepdeck/actions/runs/39642233429),
+[run 39644553243](https://github.com/miguel-osuna/Sweepdeck/actions/runs/39644553243),
 passed Homebrew audit, style, install, bundle inspection, and uninstall on a disposable
 Apple Silicon runner. Gatekeeper rejected the quarantined ad-hoc-signed app (`spctl`
 exit status 3). Its first-launch screen said **“Sweepdeck” Not Opened** because Apple
