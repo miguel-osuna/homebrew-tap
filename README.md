@@ -1,11 +1,11 @@
 # Miguel Osuna's Homebrew tap
 
-Homebrew formulae and casks maintained by Miguel Osuna. The initial cask is not published yet. The
-release-shaped 0.1.0 candidate passed Homebrew audit/style/install/uninstall on a
-disposable Apple Silicon runner, but Gatekeeper rejected its quarantined app
-(`spctl` exit status 3) and first launch did not start. Publication is blocked pending
-a Developer ID signing and notarization decision, followed by a successful candidate
-retest.
+Homebrew formulae and casks maintained by Miguel Osuna. The initial cask and app
+release are not published. Ten release-candidate checks passed Homebrew audit, style,
+install, bundle inspection, and uninstall on disposable Apple Silicon runners, but
+Gatekeeper rejected the quarantined app (`spctl` exit status 3) and first launch did
+not start. The maintainer decided not to add Developer ID signing or notarization for
+this release attempt, so publication remains blocked by that compatibility check.
 
 When the cask is published, the fully qualified install command will be:
 
@@ -24,5 +24,5 @@ brew install --cask sweepdeck
 
 Cask version and SHA-256 updates are manual and reviewed in pull requests. CI runs
 Homebrew audit/style checks, installs the released app under quarantine on a disposable
-Apple Silicon runner, checks first launch, and uninstalls the app. The cask does not
-delete Sweepdeck preferences or history and will not contain a `zap` stanza.
+Apple Silicon runner, checks first launch, and uninstalls the app. The planned cask
+will leave Sweepdeck preferences and history intact and will not contain a `zap` stanza.
